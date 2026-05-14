@@ -1,0 +1,330 @@
+CREATE SCHEMA IF NOT EXISTS public;
+
+CREATE SEQUENCE IF NOT EXISTS act_item_id_seq;
+CREATE SEQUENCE IF NOT EXISTS advertising_campaign_id_seq;
+CREATE SEQUENCE IF NOT EXISTS brief_item_id_seq;
+CREATE SEQUENCE IF NOT EXISTS campaign_report_id_seq;
+CREATE SEQUENCE IF NOT EXISTS campaign_status_id_seq;
+CREATE SEQUENCE IF NOT EXISTS client_id_seq;
+CREATE SEQUENCE IF NOT EXISTS client_brief_id_seq;
+CREATE SEQUENCE IF NOT EXISTS completion_act_id_seq;
+CREATE SEQUENCE IF NOT EXISTS contract_item_id_seq;
+CREATE SEQUENCE IF NOT EXISTS creative_material_id_seq;
+CREATE SEQUENCE IF NOT EXISTS currency_id_seq;
+CREATE SEQUENCE IF NOT EXISTS employee_id_seq;
+CREATE SEQUENCE IF NOT EXISTS employee_phone_id_seq;
+CREATE SEQUENCE IF NOT EXISTS invoice_id_seq;
+CREATE SEQUENCE IF NOT EXISTS invoice_item_id_seq;
+CREATE SEQUENCE IF NOT EXISTS job_position_id_seq;
+CREATE SEQUENCE IF NOT EXISTS kpi_type_id_seq;
+CREATE SEQUENCE IF NOT EXISTS material_campaign_id_seq;
+CREATE SEQUENCE IF NOT EXISTS payment_id_seq;
+CREATE SEQUENCE IF NOT EXISTS report_kpi_id_seq;
+CREATE SEQUENCE IF NOT EXISTS service_id_seq;
+CREATE SEQUENCE IF NOT EXISTS service_contract_id_seq;
+CREATE SEQUENCE IF NOT EXISTS service_type_id_seq;
+
+CREATE TABLE public.act_item (
+  id serial NOT NULL DEFAULT nextval('act_item_id_seq' PRIMARY KEY,
+  completion_act_id integer NOT NULL,
+  service_id integer NOT NULL,
+  performed_volume numeric(10, 2) NOT NULL,
+  amount numeric(14, 2) NOT NULL
+);
+
+CREATE UNIQUE INDEX public_act_item_pkey ON public.act_item (id);
+
+CREATE TABLE public.advertising_campaign (
+  id integer NOT NULL DEFAULT nextval('advertising_campaign_id_seq' PRIMARY KEY,
+  name varchar(500) NOT NULL,
+  client_id integer NOT NULL,
+  start_date date NOT NULL,
+  planned_end_date date NOT NULL,
+  budget numeric(14, 2) NOT NULL,
+  currency_id integer NOT NULL,
+  status_id integer NOT NULL,
+  responsible_employee_id integer NOT NULL,
+  description text
+);
+
+CREATE UNIQUE INDEX public_advertising_campaign_pkey ON public.advertising_campaign (id);
+
+CREATE TABLE public.brief_item (
+  id serial NOT NULL DEFAULT nextval('brief_item_id_seq' PRIMARY KEY,
+  client_brief_id integer NOT NULL,
+  service_id integer NOT NULL,
+  requirements text,
+  desired_deadline date,
+  priority smallint
+);
+
+CREATE UNIQUE INDEX public_brief_item_client_brief_id_service_id_key ON public.brief_item (client_brief_id, service_id);
+CREATE UNIQUE INDEX public_brief_item_pkey ON public.brief_item (id);
+
+CREATE TABLE public.campaign_report (
+  id integer NOT NULL DEFAULT nextval('campaign_report_id_seq' PRIMARY KEY,
+  report_number varchar(500) NOT NULL UNIQUE,
+  report_date date NOT NULL,
+  advertising_campaign_id integer NOT NULL,
+  period_start date NOT NULL,
+  period_end date NOT NULL,
+  conclusions text
+);
+
+CREATE UNIQUE INDEX public_campaign_report_pkey ON public.campaign_report (id);
+CREATE UNIQUE INDEX public_campaign_report_report_number_key ON public.campaign_report (report_number);
+
+CREATE TABLE public.campaign_status (
+  id integer NOT NULL DEFAULT nextval('campaign_status_id_seq' PRIMARY KEY,
+  name varchar(500) NOT NULL UNIQUE,
+  sort_order smallint NOT NULL,
+  description text
+);
+
+CREATE UNIQUE INDEX public_campaign_status_pkey ON public.campaign_status (id);
+CREATE UNIQUE INDEX public_campaign_status_name_key ON public.campaign_status (name);
+
+CREATE TABLE public.client (
+  id integer NOT NULL DEFAULT nextval('client_id_seq' PRIMARY KEY,
+  name varchar(500) NOT NULL,
+  client_type varchar(500) NOT NULL,
+  inn varchar(500) UNIQUE,
+  email varchar(500) UNIQUE,
+  address varchar(500),
+  registration_date date NOT NULL
+);
+
+CREATE UNIQUE INDEX public_client_pkey ON public.client (id);
+CREATE UNIQUE INDEX public_client_email_key ON public.client (email);
+CREATE UNIQUE INDEX public_client_inn_key ON public.client (inn);
+
+CREATE TABLE public.client_brief (
+  id integer NOT NULL DEFAULT nextval('client_brief_id_seq' PRIMARY KEY,
+  brief_number varchar(500) NOT NULL UNIQUE,
+  creation_date date NOT NULL,
+  client_id integer NOT NULL,
+  account_manager_id integer NOT NULL,
+  goal text NOT NULL,
+  target_audience text,
+  estimated_budget numeric(14, 2)
+);
+
+CREATE UNIQUE INDEX public_client_brief_brief_number_key ON public.client_brief (brief_number);
+CREATE UNIQUE INDEX public_client_brief_pkey ON public.client_brief (id);
+
+CREATE TABLE public.completion_act (
+  id integer NOT NULL DEFAULT nextval('completion_act_id_seq' PRIMARY KEY,
+  act_number varchar(500) NOT NULL UNIQUE,
+  act_date date NOT NULL,
+  service_contract_id integer NOT NULL,
+  client_id integer NOT NULL,
+  currency_id integer NOT NULL
+);
+
+CREATE UNIQUE INDEX public_completion_act_pkey ON public.completion_act (id);
+CREATE UNIQUE INDEX public_completion_act_act_number_key ON public.completion_act (act_number);
+
+CREATE TABLE public.contract_item (
+  id serial NOT NULL DEFAULT nextval('contract_item_id_seq' PRIMARY KEY,
+  service_contract_id integer NOT NULL,
+  service_id integer NOT NULL,
+  volume numeric(10, 2) NOT NULL,
+  unit_price numeric(12, 2) NOT NULL,
+  quantity integer NOT NULL,
+  line_amount numeric(14, 2) NOT NULL
+);
+
+CREATE UNIQUE INDEX public_contract_item_pkey ON public.contract_item (id);
+
+CREATE TABLE public.creative_material (
+  id integer NOT NULL DEFAULT nextval('creative_material_id_seq' PRIMARY KEY,
+  name varchar(500) NOT NULL,
+  material_type varchar(500) NOT NULL,
+  file_path varchar(500) NOT NULL,
+  file_size_kb integer NOT NULL,
+  employee_id integer NOT NULL,
+  created_date date NOT NULL,
+  is_approved boolean NOT NULL
+);
+
+CREATE UNIQUE INDEX public_creative_material_pkey ON public.creative_material (id);
+
+CREATE TABLE public.currency (
+  id integer NOT NULL DEFAULT nextval('currency_id_seq' PRIMARY KEY,
+  code character NOT NULL UNIQUE,
+  name varchar(500) NOT NULL,
+  symbol varchar(500)
+);
+
+CREATE UNIQUE INDEX public_currency_code_key ON public.currency (code);
+CREATE UNIQUE INDEX public_currency_pkey ON public.currency (id);
+
+CREATE TABLE public.employee (
+  id integer NOT NULL DEFAULT nextval('employee_id_seq' PRIMARY KEY,
+  first_name varchar(500) NOT NULL,
+  middle_name varchar(500),
+  last_name varchar(500) NOT NULL,
+  job_position_id integer NOT NULL,
+  email varchar(500) NOT NULL UNIQUE,
+  hire_date date NOT NULL,
+  is_active boolean NOT NULL,
+  username varchar(500) NOT NULL UNIQUE
+);
+
+CREATE UNIQUE INDEX public_employee_username_key ON public.employee (username);
+CREATE UNIQUE INDEX public_employee_pkey ON public.employee (id);
+CREATE UNIQUE INDEX public_employee_email_key ON public.employee (email);
+
+CREATE TABLE public.employee_phone (
+  id serial NOT NULL DEFAULT nextval('employee_phone_id_seq' PRIMARY KEY,
+  employee_id integer NOT NULL,
+  phone_number varchar(500) NOT NULL
+);
+
+CREATE UNIQUE INDEX public_employee_phone_pkey ON public.employee_phone (id);
+
+CREATE TABLE public.invoice (
+  id integer NOT NULL DEFAULT nextval('invoice_id_seq' PRIMARY KEY,
+  invoice_number varchar(500) NOT NULL UNIQUE,
+  issue_date date NOT NULL,
+  client_id integer NOT NULL,
+  currency_id integer NOT NULL,
+  completion_act_id integer,
+  due_date date NOT NULL
+);
+
+CREATE UNIQUE INDEX public_invoice_invoice_number_key ON public.invoice (invoice_number);
+CREATE UNIQUE INDEX public_invoice_pkey ON public.invoice (id);
+
+CREATE TABLE public.invoice_item (
+  id serial NOT NULL DEFAULT nextval('invoice_item_id_seq' PRIMARY KEY,
+  invoice_id integer NOT NULL,
+  description varchar(500) NOT NULL,
+  quantity integer NOT NULL,
+  price numeric(12, 2) NOT NULL,
+  amount numeric(14, 2) NOT NULL
+);
+
+CREATE UNIQUE INDEX public_invoice_item_pkey ON public.invoice_item (id);
+
+CREATE TABLE public.job_position (
+  id integer NOT NULL DEFAULT nextval('job_position_id_seq' PRIMARY KEY,
+  name varchar(500) NOT NULL UNIQUE,
+  description text
+);
+
+CREATE UNIQUE INDEX public_job_position_name_key ON public.job_position (name);
+CREATE UNIQUE INDEX public_job_position_pkey ON public.job_position (id);
+
+CREATE TABLE public.kpi_type (
+  id integer NOT NULL DEFAULT nextval('kpi_type_id_seq' PRIMARY KEY,
+  name varchar(500) NOT NULL UNIQUE,
+  unit varchar(500),
+  description text
+);
+
+CREATE UNIQUE INDEX public_kpi_type_name_key ON public.kpi_type (name);
+CREATE UNIQUE INDEX public_kpi_type_pkey ON public.kpi_type (id);
+
+CREATE TABLE public.material_campaign (
+  id serial NOT NULL DEFAULT nextval('material_campaign_id_seq' PRIMARY KEY,
+  material_id integer NOT NULL,
+  campaign_id integer NOT NULL
+);
+
+CREATE UNIQUE INDEX public_material_campaign_material_id_campaign_id_key ON public.material_campaign (material_id, campaign_id);
+CREATE UNIQUE INDEX public_material_campaign_pkey ON public.material_campaign (id);
+
+CREATE TABLE public.payment (
+  id serial NOT NULL DEFAULT nextval('payment_id_seq' PRIMARY KEY,
+  payment_date date NOT NULL,
+  client_id integer NOT NULL,
+  amount numeric(14, 2) NOT NULL,
+  currency_id integer NOT NULL,
+  invoice_id integer NOT NULL,
+  payment_method varchar(500) NOT NULL,
+  is_confirmed boolean NOT NULL
+);
+
+CREATE UNIQUE INDEX public_payment_pkey ON public.payment (id);
+
+CREATE TABLE public.report_kpi (
+  id serial NOT NULL DEFAULT nextval('report_kpi_id_seq' PRIMARY KEY,
+  campaign_report_id integer NOT NULL,
+  kpi_type_id integer NOT NULL,
+  value numeric(14, 2) NOT NULL,
+  recorded_date date NOT NULL
+);
+
+CREATE UNIQUE INDEX public_report_kpi_campaign_report_id_kpi_type_id_key ON public.report_kpi (campaign_report_id, kpi_type_id);
+CREATE UNIQUE INDEX public_report_kpi_pkey ON public.report_kpi (id);
+
+CREATE TABLE public.service (
+  id integer NOT NULL DEFAULT nextval('service_id_seq' PRIMARY KEY,
+  service_type_id integer NOT NULL,
+  name varchar(500) NOT NULL,
+  base_price numeric(12, 2) NOT NULL,
+  unit varchar(500) NOT NULL,
+  description text,
+  is_active boolean NOT NULL
+);
+
+CREATE UNIQUE INDEX public_service_pkey ON public.service (id);
+
+CREATE TABLE public.service_contract (
+  id integer NOT NULL DEFAULT nextval('service_contract_id_seq' PRIMARY KEY,
+  contract_number varchar(500) NOT NULL UNIQUE,
+  signing_date date NOT NULL,
+  client_id integer NOT NULL,
+  currency_id integer NOT NULL,
+  start_date date NOT NULL,
+  end_date date NOT NULL
+);
+
+CREATE UNIQUE INDEX public_service_contract_pkey ON public.service_contract (id);
+CREATE UNIQUE INDEX public_service_contract_contract_number_key ON public.service_contract (contract_number);
+
+CREATE TABLE public.service_type (
+  id integer NOT NULL DEFAULT nextval('service_type_id_seq' PRIMARY KEY,
+  name varchar(500) NOT NULL UNIQUE,
+  code varchar(500) NOT NULL UNIQUE,
+  description text
+);
+
+CREATE UNIQUE INDEX public_service_type_pkey ON public.service_type (id);
+CREATE UNIQUE INDEX public_service_type_name_key ON public.service_type (name);
+CREATE UNIQUE INDEX public_service_type_code_key ON public.service_type (code);
+
+ALTER TABLE public.employee ADD CONSTRAINT employee_job_position_id_fkey FOREIGN KEY (job_position_id) REFERENCES public.job_position (id);
+ALTER TABLE public.employee_phone ADD CONSTRAINT employee_phone_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.employee (id);
+ALTER TABLE public.service ADD CONSTRAINT service_service_type_id_fkey FOREIGN KEY (service_type_id) REFERENCES public.service_type (id);
+ALTER TABLE public.advertising_campaign ADD CONSTRAINT advertising_campaign_client_id_fkey FOREIGN KEY (client_id) REFERENCES public.client (id);
+ALTER TABLE public.advertising_campaign ADD CONSTRAINT advertising_campaign_currency_id_fkey FOREIGN KEY (currency_id) REFERENCES public.currency (id);
+ALTER TABLE public.advertising_campaign ADD CONSTRAINT advertising_campaign_status_id_fkey FOREIGN KEY (status_id) REFERENCES public.campaign_status (id);
+ALTER TABLE public.advertising_campaign ADD CONSTRAINT advertising_campaign_responsible_employee_id_fkey FOREIGN KEY (responsible_employee_id) REFERENCES public.employee (id);
+ALTER TABLE public.creative_material ADD CONSTRAINT creative_material_employee_id_fkey FOREIGN KEY (employee_id) REFERENCES public.employee (id);
+ALTER TABLE public.material_campaign ADD CONSTRAINT material_campaign_material_id_fkey FOREIGN KEY (material_id) REFERENCES public.creative_material (id);
+ALTER TABLE public.material_campaign ADD CONSTRAINT material_campaign_campaign_id_fkey FOREIGN KEY (campaign_id) REFERENCES public.advertising_campaign (id);
+ALTER TABLE public.client_brief ADD CONSTRAINT client_brief_client_id_fkey FOREIGN KEY (client_id) REFERENCES public.client (id);
+ALTER TABLE public.client_brief ADD CONSTRAINT client_brief_account_manager_id_fkey FOREIGN KEY (account_manager_id) REFERENCES public.employee (id);
+ALTER TABLE public.brief_item ADD CONSTRAINT brief_item_client_brief_id_fkey FOREIGN KEY (client_brief_id) REFERENCES public.client_brief (id);
+ALTER TABLE public.brief_item ADD CONSTRAINT brief_item_service_id_fkey FOREIGN KEY (service_id) REFERENCES public.service (id);
+ALTER TABLE public.service_contract ADD CONSTRAINT service_contract_client_id_fkey FOREIGN KEY (client_id) REFERENCES public.client (id);
+ALTER TABLE public.service_contract ADD CONSTRAINT service_contract_currency_id_fkey FOREIGN KEY (currency_id) REFERENCES public.currency (id);
+ALTER TABLE public.contract_item ADD CONSTRAINT contract_item_service_contract_id_fkey FOREIGN KEY (service_contract_id) REFERENCES public.service_contract (id);
+ALTER TABLE public.contract_item ADD CONSTRAINT contract_item_service_id_fkey FOREIGN KEY (service_id) REFERENCES public.service (id);
+ALTER TABLE public.campaign_report ADD CONSTRAINT campaign_report_advertising_campaign_id_fkey FOREIGN KEY (advertising_campaign_id) REFERENCES public.advertising_campaign (id);
+ALTER TABLE public.report_kpi ADD CONSTRAINT report_kpi_campaign_report_id_fkey FOREIGN KEY (campaign_report_id) REFERENCES public.campaign_report (id);
+ALTER TABLE public.report_kpi ADD CONSTRAINT report_kpi_kpi_type_id_fkey FOREIGN KEY (kpi_type_id) REFERENCES public.kpi_type (id);
+ALTER TABLE public.completion_act ADD CONSTRAINT completion_act_service_contract_id_fkey FOREIGN KEY (service_contract_id) REFERENCES public.service_contract (id);
+ALTER TABLE public.completion_act ADD CONSTRAINT completion_act_client_id_fkey FOREIGN KEY (client_id) REFERENCES public.client (id);
+ALTER TABLE public.completion_act ADD CONSTRAINT completion_act_currency_id_fkey FOREIGN KEY (currency_id) REFERENCES public.currency (id);
+ALTER TABLE public.act_item ADD CONSTRAINT act_item_completion_act_id_fkey FOREIGN KEY (completion_act_id) REFERENCES public.completion_act (id);
+ALTER TABLE public.act_item ADD CONSTRAINT act_item_service_id_fkey FOREIGN KEY (service_id) REFERENCES public.service (id);
+ALTER TABLE public.invoice ADD CONSTRAINT invoice_client_id_fkey FOREIGN KEY (client_id) REFERENCES public.client (id);
+ALTER TABLE public.invoice ADD CONSTRAINT invoice_currency_id_fkey FOREIGN KEY (currency_id) REFERENCES public.currency (id);
+ALTER TABLE public.invoice ADD CONSTRAINT invoice_completion_act_id_fkey FOREIGN KEY (completion_act_id) REFERENCES public.completion_act (id);
+ALTER TABLE public.invoice_item ADD CONSTRAINT invoice_item_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES public.invoice (id);
+ALTER TABLE public.payment ADD CONSTRAINT payment_client_id_fkey FOREIGN KEY (client_id) REFERENCES public.client (id);
+ALTER TABLE public.payment ADD CONSTRAINT payment_currency_id_fkey FOREIGN KEY (currency_id) REFERENCES public.currency (id);
+ALTER TABLE public.payment ADD CONSTRAINT payment_invoice_id_fkey FOREIGN KEY (invoice_id) REFERENCES public.invoice (id);
